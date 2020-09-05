@@ -135,6 +135,65 @@ string(CONCAT OPEN3D_VERSION
 project(Open3D VERSION ${OPEN3D_VERSION} LANGUAGES C CXX)
 message(STATUS "Open3D ${PROJECT_VERSION}")
 
+# Detect process or architecture.
+# Ref: https://stackoverflow.com/a/12024211/1255535
+set(detect_arch_code "
+#if defined(__x86_64) || defined(__x86_64__) || defined(__amd64) || \
+        defined(_M_X64)
+#define PROCESSOR_ARCH \"x86_64\"
+#elif defined(__ARMv8_A__) || defined(__ARM64_ARCH_8__) || \
+        defined(__aarch64__) || defined(__ARMv8__) || defined(_M_ARM64)
+#define PROCESSOR_ARCH \"armv8\"
+#elif defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) ||    \
+        defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || \
+        defined(__ARM_ARCH_7EM__)
+#define PROCESSOR_ARCH \"armv7\"
+#else
+#define PROCESSOR_ARCH \"unknown\"
+#endif
+
+#include <iostream>
+int main() {
+    std::cout << PROCESSOR_ARCH;
+    return 0;
+}
+")
+file(WRITE "${CMAKE_BINARY_DIR}/detect_arch.cpp" "${detect_arch_code}")
+try_run(
+    dummy_run_result                       # <runResultVar>
+    dummy_compile_result                   # <compileResultVar>
+    "${CMAKE_BINARY_DIR}/bin"              # <bindir>
+    "${CMAKE_BINARY_DIR}/detect_arch.cpp"  # <srcfile>
+    RUN_OUTPUT_VARIABLE PROCESSOR_ARCH
+)
+if("${PROCESSOR_ARCH}" STREQUAL "unknown")
+    message(FATAL_ERROR "Unsupported processor architecture.")
+else()
+    message(STATUS "Detected processor architecture: ${PROCESSOR_ARCH}.")
+endif()
+
+# Set BLAS/LAPACK library preference.
+if(SELECT_BLAS)
+    # Manually setting PREFERRED_BLAS. Must be one of
+    # - MKL      : Default option. Use Intel MKL.
+    # - SYSTEM   : Try to detect system provided BLAS/LAPACK
+    # - OPENBLAS : Build OpenBLAS from source.
+    if((NOT "${PREFERRED_BLAS}" STREQUAL "MKL") AND
+       (NOT "${PREFERRED_BLAS}" STREQUAL "OPENBLAS") AND
+       (NOT "${PREFERRED_BLAS}" STREQUAL "SYSTEM"))
+       message(FATAL_ERROR "${PREFERRED_BLAS} must be one of {MKL, OPENBLAS, SYSTEM}")
+    endif()
+else()
+    if("${PROCESSOR_ARCH}" STREQUAL "x86_64")
+        set(SELECT_BLAS "MKL")
+    elseif(("${PROCESSOR_ARCH}" STREQUAL "armv8") OR (${PROCESSOR_ARCH} STREQUAL "armv7"))
+        set(SELECT_BLAS "OPENBLAS")
+    else()
+        message(FATAL_ERROR "Unable to select BLAS.")
+    endif()
+endif()
+message(STATUS "Selected BLAS: ${SELECT_BLAS}.")
+
 # CMake modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/3rdparty/CMake)
 
