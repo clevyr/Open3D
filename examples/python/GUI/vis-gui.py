@@ -589,8 +589,8 @@ class AppWindow:
         dlg = gui.FileDialog(gui.FileDialog.OPEN, "Choose file to load",
                              self.window.theme)
         dlg.add_filter(
-            ".ply .stl .obj .off .gltf .glb",
-            "Triangle mesh files (.ply, .stl, .obj, .off, "
+            ".ply .stl .fbx .obj .off .gltf .glb",
+            "Triangle mesh files (.ply, .stl, .fbx, .obj, .off, "
             ".gltf, .glb)")
         dlg.add_filter(
             ".xyz .xyzn .xyzrgb .ply .pcd .pts",
@@ -598,6 +598,7 @@ class AppWindow:
             ".pcd, .pts)")
         dlg.add_filter(".ply", "Polygon files (.ply)")
         dlg.add_filter(".stl", "Stereolithography files (.stl)")
+        dlg.add_filter(".fbx", "Autodesk Filmbox files (.fbx)")
         dlg.add_filter(".obj", "Wavefront OBJ files (.obj)")
         dlg.add_filter(".off", "Object file format (.off)")
         dlg.add_filter(".gltf", "OpenGL transfer files (.gltf)")
@@ -608,7 +609,7 @@ class AppWindow:
                        "ASCII point cloud files with colors (.xyzrgb)")
         dlg.add_filter(".pcd", "Point Cloud Data files (.pcd)")
         dlg.add_filter(".pts", "3D Points files (.pts)")
-        dlg.add_filter("*.*", "All files")
+        dlg.add_filter("", "All files")
 
         # A file dialog MUST define on_cancel and on_done functions
         dlg.set_on_cancel(self._on_file_dialog_cancel)
@@ -720,7 +721,8 @@ class AppWindow:
                 cloud = None
 
         if geometry is not None:
-            self._scene.scene.add_geometry(geometry, self.settings.material)
+            self._scene.scene.add_geometry("__model__", geometry,
+                                           self.settings.material)
             bounds = geometry.get_axis_aligned_bounding_box()
             self._scene.setup_camera(60, bounds, bounds.get_center())
 

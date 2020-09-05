@@ -13,6 +13,7 @@ option(BUILD_UNIT_TESTS           "Build Open3D unit tests"                  OFF
 option(BUILD_BENCHMARKS           "Build the micro benchmarks"               OFF)
 option(BUILD_PYTHON_MODULE        "Build the python module"                  ON )
 option(BUILD_CUDA_MODULE          "Build the CUDA module"                    OFF)
+option(BUILD_CACHED_CUDA_MANAGER  "Build the cached CUDA memory manager"     ON)
 option(BUILD_GUI                  "Builds new GUI"                           ON )
 option(BUILD_JUPYTER_EXTENSION    "Enable Jupyter support for Open3D"        OFF)
 option(WITH_OPENMP                "Use OpenMP multi-threading"               ON )
@@ -111,10 +112,6 @@ if(ENABLE_HEADLESS_RENDERING AND (USE_SYSTEM_GLEW OR USE_SYSTEM_GLFW))
     message(STATUS "Headless rendering requires customized GLEW and GLFW builds")
     set(USE_SYSTEM_GLEW OFF)
     set(USE_SYSTEM_GLFW OFF)
-endif()
-if(BUILD_GUI AND WIN32)
-    message(STATUS "New GUI is currently unsupported on Windows")
-    set(BUILD_GUI OFF)
 endif()
 if(BUILD_RPC_INTERFACE AND WIN32)
     message(STATUS "The RPC interface is currently unsupported on Windows.")
@@ -237,8 +234,6 @@ endif ()
 
 # OS specific settings
 if(BUILD_GUI AND WIN32)
-    # Filament links normally only against static runtime
-    set(STATIC_WINDOWS_RUNTIME ON)
     if(NOT COMMAND target_link_options)  # CMake 3.13+ required
         # GLEW and Open3D make direct OpenGL calls and link to opengl32.lib;
         # Filament needs to link through bluegl.lib.
@@ -322,6 +317,9 @@ function(open3d_set_global_properties target)
     )
     if(BUILD_CUDA_MODULE)
         target_compile_definitions(${target} PRIVATE BUILD_CUDA_MODULE)
+        if(BUILD_CACHED_CUDA_MANAGER)
+            target_compile_definitions(${target} PRIVATE BUILD_CACHED_CUDA_MANAGER)
+        endif()
     endif()
     if(USE_OPENBLAS)
         target_compile_definitions(${target} PRIVATE USE_OPENBLAS)
@@ -353,13 +351,16 @@ function(open3d_set_global_properties target)
             # Option 2, at configure time: add /MP flag, no need to use Option 1
             # https://docs.microsoft.com/en-us/cpp/build/reference/mp-build-with-multiple-processes?view=vs-2019
             target_compile_options(${target} PRIVATE /MP)
-            if(COMMAND target_link_options)
+            if(COMMAND target_link_options) # target_link_options add in 3.13
                 if(BUILD_GUI)
                     # GLEW and Open3D make direct OpenGL calls and link to opengl32.lib;
                     # Filament needs to link through bluegl.lib.
                     # See https://github.com/google/filament/issues/652
                     target_link_options(${target} PRIVATE /force:multiple)
                 endif()
+                # The examples' .pdb files use up a lot of space and cause us to run
+                # out of space on Github Actions. Compressing gives us another couple of GB.
+                target_link_options(${target} PRIVATE /pdbcompress)
             endif()
         endif()
     elseif(APPLE)

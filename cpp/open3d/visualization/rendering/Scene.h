@@ -40,12 +40,16 @@ class AxisAlignedBoundingBox;
 class Image;
 }  // namespace geometry
 
+namespace tgeometry {
+class PointCloud;
+}  // namespace tgeometry
+
 namespace visualization {
 namespace rendering {
 
 class Renderer;
 class View;
-class Model;
+struct TriangleMeshModel;
 struct Material;
 struct Light;
 
@@ -53,6 +57,11 @@ struct Light;
 // Can have multiple views
 class Scene {
 public:
+    const uint32_t kUpdatePointsFlag = (1 << 0);
+    const uint32_t kUpdateNormalsFlag = (1 << 1);
+    const uint32_t kUpdateColorsFlag = (1 << 2);
+    const uint32_t kUpdateUv0Flag = (1 << 3);
+
     using Transform = Eigen::Transform<float, 3, Eigen::Affine>;
 
     Scene(Renderer& renderer) : renderer_(renderer) {}
@@ -79,7 +88,13 @@ public:
                              const geometry::Geometry3D& geometry,
                              const Material& material) = 0;
     virtual bool AddGeometry(const std::string& object_name,
-                             const Model& model) = 0;
+                             const tgeometry::PointCloud& point_cloud,
+                             const Material& material) = 0;
+    virtual bool AddGeometry(const std::string& object_name,
+                             const TriangleMeshModel& model) = 0;
+    virtual void UpdateGeometry(const std::string& object_name,
+                                const tgeometry::PointCloud& point_cloud,
+                                uint32_t update_flags) = 0;
     virtual void RemoveGeometry(const std::string& object_name) = 0;
     virtual void ShowGeometry(const std::string& object_name, bool show) = 0;
     virtual bool GeometryIsVisible(const std::string& object_name) = 0;

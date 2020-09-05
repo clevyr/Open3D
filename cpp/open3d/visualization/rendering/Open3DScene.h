@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include <map>
 #include <vector>
 
 #include "open3d/geometry/BoundingVolume.h"
@@ -37,11 +38,16 @@ namespace geometry {
 class Geometry3D;
 }  // namespace geometry
 
+namespace tgeometry {
+class PointCloud;
+}  // namespace tgeometry
+
 namespace visualization {
 namespace rendering {
 
 class Camera;
 struct Material;
+struct TriangleMeshModel;
 
 class Open3DScene {
 public:
@@ -56,11 +62,30 @@ public:
     void ShowAxes(bool enable);
 
     void ClearGeometry();
-    void AddGeometry(std::shared_ptr<const geometry::Geometry3D> geom,
+    /// Adds a geometry with the specified name. Default visible is true.
+    void AddGeometry(const std::string& name,
+                     std::shared_ptr<const geometry::Geometry3D> geom,
                      const Material& mat,
                      bool add_downsampled_copy_for_fast_rendering = true);
+    // Note: we can't use shared_ptr here, as we might be given something
+    //       from Python, which is using unique_ptr. The pointer must live long
+    //       enough to get copied to the GPU by the render thread.
+    void AddGeometry(const std::string& name,
+                     const tgeometry::PointCloud* geom,
+                     const Material& mat);
+    void RemoveGeometry(const std::string& name);
+    /// Shows or hides the geometry with the specified name.
+    void ShowGeometry(const std::string& name, bool show);
+    void AddModel(const std::string& name, const TriangleMeshModel& model);
+
+    /// Updates all geometries to use this material
     void UpdateMaterial(const Material& mat);
+    /// Updates the named model to use this material
+    void UpdateModelMaterial(const std::string& name,
+                             const TriangleMeshModel& model);
     std::vector<std::string> GetGeometries();
+
+    const geometry::AxisAlignedBoundingBox& GetBoundingBox() { return bounds_; }
 
     enum class LOD {
         HIGH_DETAIL,  // used when rendering time is not as important
@@ -74,13 +99,25 @@ public:
     Renderer& GetRenderer() const;
 
 private:
+    struct GeometryData {
+        std::string name;
+        std::string fast_name;
+        bool visible;
+
+        GeometryData() : visible(false) {}  // for STL containers
+        GeometryData(const std::string& n, const std::string& fast)
+            : name(n), fast_name(fast), visible(true) {}
+    };
+
+    void SetGeometryToLOD(const GeometryData&, LOD lod);
+
+private:
     Renderer& renderer_;
     SceneHandle scene_;
     ViewHandle view_;
 
     LOD lod_ = LOD::HIGH_DETAIL;
-    std::string model_name_;
-    std::string fast_model_name_;
+    std::map<std::string, GeometryData> geometries_;  // name -> data
     geometry::AxisAlignedBoundingBox bounds_;
 };
 

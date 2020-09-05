@@ -31,6 +31,7 @@
 #include "pybind/open3d_pybind.h"
 
 namespace open3d {
+namespace core {
 
 void pybind_core_kernel(py::module &m) {
     py::module m_kernel = m.def_submodule("kernel");
@@ -38,4 +39,5 @@ void pybind_core_kernel(py::module &m) {
                  &core::kernel::TestLinalgIntegration);
 }
 
+}  // namespace core
 }  // namespace open3d

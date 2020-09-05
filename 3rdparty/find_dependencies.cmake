@@ -365,6 +365,11 @@ endif()
 set(FLANN_TARGET "3rdparty_flann")
 list(APPEND Open3D_3RDPARTY_PRIVATE_TARGETS "${FLANN_TARGET}")
 
+# Nanoflann
+build_3rdparty_library(3rdparty_nanoflann DIRECTORY nanoflann INCLUDE_DIRS include/ INCLUDE_ALL)
+set(NANOFLANN_TARGET "3rdparty_nanoflann")
+list(APPEND Open3D_3RDPARTY_PRIVATE_TARGETS "${NANOFLANN_TARGET}")
+
 # GLEW
 if(USE_SYSTEM_GLEW)
     find_package(GLEW)
@@ -878,9 +883,17 @@ if(BUILD_GUI)
         message(STATUS "Using prebuilt third-party library Filament")
         include(${Open3D_3RDPARTY_DIR}/filament/filament_download.cmake)
     endif()
+    set(FILAMENT_RUNTIME_VER "")
+    if (WIN32)
+        if (STATIC_WINDOWS_RUNTIME)
+            set(FILAMENT_RUNTIME_VER "mt$<$<CONFIG:DEBUG>:d>")
+        else()
+            set(FILAMENT_RUNTIME_VER "md$<$<CONFIG:DEBUG>:d>")
+        endif()
+    endif()
     import_3rdparty_library(3rdparty_filament HEADER
         INCLUDE_DIRS ${FILAMENT_ROOT}/include/
-        LIB_DIR ${FILAMENT_ROOT}/lib/x86_64
+        LIB_DIR ${FILAMENT_ROOT}/lib/x86_64/${FILAMENT_RUNTIME_VER}
         LIBRARIES ${filament_LIBRARIES}
     )
     set(FILAMENT_MATC "${FILAMENT_ROOT}/bin/matc")
