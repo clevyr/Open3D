@@ -173,26 +173,10 @@ else()
 endif()
 
 # Set BLAS/LAPACK library preference.
-if(SELECT_BLAS)
-    # Manually setting PREFERRED_BLAS. Must be one of
-    # - MKL      : Default option. Use Intel MKL.
-    # - SYSTEM   : Try to detect system provided BLAS/LAPACK
-    # - OPENBLAS : Build OpenBLAS from source.
-    if((NOT "${PREFERRED_BLAS}" STREQUAL "MKL") AND
-       (NOT "${PREFERRED_BLAS}" STREQUAL "OPENBLAS") AND
-       (NOT "${PREFERRED_BLAS}" STREQUAL "SYSTEM"))
-       message(FATAL_ERROR "${PREFERRED_BLAS} must be one of {MKL, OPENBLAS, SYSTEM}")
-    endif()
-else()
-    if("${PROCESSOR_ARCH}" STREQUAL "x86_64")
-        set(SELECT_BLAS "MKL")
-    elseif(("${PROCESSOR_ARCH}" STREQUAL "armv8") OR (${PROCESSOR_ARCH} STREQUAL "armv7"))
-        set(SELECT_BLAS "OPENBLAS")
-    else()
-        message(FATAL_ERROR "Unable to select BLAS.")
-    endif()
+if(("${PROCESSOR_ARCH}" STREQUAL "armv8") OR (${PROCESSOR_ARCH} STREQUAL "armv7"))
+    set(USE_OPENBLAS ON)
+    message(STATUS "ARM CPU detected, set USE_OPENBLAS=ON.")
 endif()
-message(STATUS "Selected BLAS: ${SELECT_BLAS}.")
 
 # CMake modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/3rdparty/CMake)
