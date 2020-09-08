@@ -1,3 +1,29 @@
+# Clevyr Open3D: A Modern Library for 3D Data Processing
+
+## Installation:
+
+```
+# Prepare everything
+conda activate hfh # Or whatever your desired conda environment is
+brew install cmake
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+# Clone the repo. Note the "recursive" flag to get the submodules
+git clone --recursive https://github.com/intel-isl/Open3D
+cd Open3D
+mkdir build
+cd build
+
+# Run the build and installation process
+cmake -D CMAKE_C_COMPILER="/Library/Developer/CommandLineTools/usr/bin/cc" -D CMAKE_CXX_COMPILER="/Library/Developer/CommandLineTools/usr/bin/c++" ..
+make -j$(sysctl -n hw.physicalcpu)
+make install-pip-package
+```
+
+Original Open3D Readme below.
+
+---
+
 <p align="center">
 <img src="https://raw.githubusercontent.com/intel-isl/Open3D/master/docs/_static/open3d_logo_horizontal.png" width="320" />
 </p>
