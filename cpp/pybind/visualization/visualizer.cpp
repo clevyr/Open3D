@@ -28,6 +28,7 @@
 
 #include "open3d/geometry/Image.h"
 #include "open3d/visualization/visualizer/VisualizerWithEditing.h"
+#include "open3d/visualization/visualizer/VisualizerWithEditingFoo.h"
 #include "open3d/visualization/visualizer/VisualizerWithKeyCallback.h"
 #include "open3d/visualization/visualizer/VisualizerWithVertexSelection.h"
 #include "pybind/docstring.h"
@@ -173,6 +174,21 @@ void pybind_visualizer(py::module &m) {
                             vis.GetWindowName();
                  })
             .def("get_picked_points", &VisualizerWithEditing::GetPickedPoints,
+                 "Function to get picked points");
+
+    py::class_<VisualizerWithEditingFoo, PyVisualizer<VisualizerWithEditingFoo>,
+               std::shared_ptr<VisualizerWithEditingFoo>>
+            visualizer_edit_foo(m, "VisualizerWithEditingFoo", visualizer,
+                            "Visualizer with editing capabilities.");
+    py::detail::bind_default_constructor<VisualizerWithEditingFoo>(
+            visualizer_edit_foo);
+    visualizer_edit_foo.def(py::init<double, bool, const std::string &>())
+            .def("__repr__",
+                 [](const VisualizerWithEditingFoo &vis) {
+                     return std::string("VisualizerWithEditingFoo with name ") +
+                            vis.GetWindowName();
+                 })
+            .def("get_picked_points", &VisualizerWithEditingFoo::GetPickedPoints,
                  "Function to get picked points");
 
     py::class_<VisualizerWithVertexSelection,
