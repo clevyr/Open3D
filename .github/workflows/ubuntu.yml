@@ -21,7 +21,6 @@ jobs:
       BUILD_TENSORFLOW_OPS: ${{ matrix.CONFIG }}
       BUILD_PYTORCH_OPS: ${{ matrix.CONFIG }}
       BUILD_RPC_INTERFACE: ON
-      USE_OPENBLAS: OFF
       NPROC: 2
     steps:
       - name: Checkout source code
