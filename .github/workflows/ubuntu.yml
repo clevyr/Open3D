@@ -58,19 +58,6 @@ jobs:
           ./util/run_ci.sh
           ccache -s
 
-<<<<<<< HEAD
-  ubuntu-openblas:
-    runs-on: ubuntu-18.04
-    strategy:
-      fail-fast: false
-    env:
-      SHARED: ON
-      BUILD_TENSORFLOW_OPS: ON
-      BUILD_PYTORCH_OPS: ON
-      BUILD_CUDA_MODULE: ON
-      BUILD_RPC_INTERFACE: OFF
-      USE_OPENBLAS: ON
-=======
   build-wheel:
     name: Build wheel
     runs-on: Ubuntu-18.04
@@ -80,7 +67,6 @@ jobs:
         python_version: [3.6, 3.7, 3.8]
     env:
       BUILD_CUDA_MODULE: ON
->>>>>>> master
       NPROC: 2
     steps:
       - name: Checkout source code
