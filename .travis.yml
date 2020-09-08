@@ -1,0 +1,28 @@
+language: cpp
+env:
+  global:
+    - SHARED=ON
+    - BUILD_TENSORFLOW_OPS=OFF
+    - BUILD_PYTORCH_OPS=OFF
+    - BUILD_CUDA_MODULE=OFF
+    - NPROC=2
+
+jobs:
+  include:
+    - os: linux
+      arch: arm64
+      dist: bionic
+      sudo: true
+      language: python
+      python: "3.6"
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - cmake
+      install:
+        - ./util/install_deps_ubuntu.sh assume-yes
+      script:
+        - python --version
+        - python3 --version
